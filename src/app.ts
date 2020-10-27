@@ -10,6 +10,7 @@ import { readConfig, Config } from './config'
 import { createLogger } from './logging'
 import { setupUsageApi } from './api/usage'
 import { handleApiErrors } from './errors'
+import { setupBrowseApi } from './api/browse'
 
 import 'express-async-errors'
 import { Logger } from 'winston'
@@ -34,7 +35,7 @@ export async function setup(): Promise<void> {
     const app = createApp(config, logger)
     const client = await TorrentClient.create(config, logger)
     
-    app.get('/status', (req, res) => res.send({'status': 'ok'}))
+    app.get('/status', (_req, res) => res.send({'status': 'ok'}))
 
     if (!config.security.streamApi || (config.security.streamApi && config.security.apiKey)) {
         if (config.security.apiKey) {
@@ -53,6 +54,7 @@ export async function setup(): Promise<void> {
         setupTorrentsApi(app, config, logger, client)
         setupStreamApi(app, config, logger, client)
         setupUsageApi(app, config, logger, client)
+        setupBrowseApi(app, config, logger, client)
     }
 
     if (config.security.demoEnabled) {
@@ -77,7 +79,7 @@ export async function setup(): Promise<void> {
     app.use(handleApiErrors(logger))
 
     app.listen(config.port, config.host, () => {
-        logger.info(`Starting app on http://${config.host}:${config.port}`)
+        logger.info(`Listening on ${config.host}:${config.port}`)
     })
 }
 
